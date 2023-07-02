@@ -1,6 +1,8 @@
 package com.khush.chatgpt3;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
@@ -29,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     ArrayList<MyData> database;
     private ActivityMainBinding binding;
     private String newMessage = "";
+    RecyclerView recyclerView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +50,13 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-
         database = new ArrayList<>();
-        MyData line1 = new MyData();
-        line1.type = 1;
-        line1.message = "Hi. How can I assist you today?";
-        database.add(line1);
+        MyData line = new MyData();
+        line.type = 1;
+        line.message = "Hi. How can I assist you today?";
+        database.add(line);
 
-
-        RecyclerView recyclerView = findViewById(R.id.chatField);
+        recyclerView = findViewById(R.id.chatField);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecyclerViewAdapter(this, database);
         recyclerView.setAdapter(adapter);
@@ -63,23 +64,31 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String text = binding.messageField.getText().toString();
-                if (text.length() > 0) {
-                    MyData line2 = new MyData();
-                    line2.type = 2;
-                    line2.message = text;
-                    database.add(line2);
+                if (NetworkManager.isNetworkAvailable(getApplicationContext())) {
+                    if (text.length() > 0) {
+                        MyData line2 = new MyData();
+                        line2.type = 2;
+                        line2.message = text;
+                        database.add(line2);
 
-                    adapter.notifyItemInserted(database.size());
-                    newMessage = text;
-                    doRequest();
-                } else {
-                    Toast.makeText(getApplicationContext(), "The message field is empty!", Toast.LENGTH_SHORT).show();
+                        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount()-1);
+                        adapter.notifyDataSetChanged();
+
+                        newMessage = text;
+                        doRequest();
+                    } else {
+                        Toast.makeText(getApplicationContext(), "The message field is empty!", Toast.LENGTH_SHORT).show();
+                    }
+                }else{
+                    Toast.makeText(getApplicationContext(), "You don't have an internet connection!", Toast.LENGTH_SHORT).show();
                 }
+                binding.messageField.getText().clear();
             }
         });
     }
 
     public void doRequest() {
+        binding.sendBtn.setEnabled(false);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -135,18 +144,17 @@ public class MainActivity extends AppCompatActivity {
                                 setAnswer(answer);
                             }
                         });
-
-
-
                     } catch (Throwable t) {
                         Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
-                        //setAnswer(t.getMessage());
+                        setAnswer("There was an error, I can't answer now");
+                        binding.sendBtn.setEnabled(true);
                     }
 
                 } catch (Exception e) {
                     e.printStackTrace();
                     Log.i("MyTag", e.toString());
-                    //setAnswer(e.getMessage());
+                    setAnswer("There was an error, I can't answer now");
+                    binding.sendBtn.setEnabled(true);
                 }
             }
         });
@@ -156,10 +164,13 @@ public class MainActivity extends AppCompatActivity {
     public void setAnswer(String text) {
         Log.e("MyTag", text);
 
-        MyData line3 = new MyData();
-        line3.type = 1;
-        line3.message = text;
-        database.add(line3);
-        adapter.notifyItemInserted(database.size());
+        MyData line = new MyData();
+        line.type = 1;
+        line.message = text;
+        database.add(line);
+        //adapter.notifyItemInserted(database.size());
+        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount()-1);
+        adapter.notifyDataSetChanged();
+        binding.sendBtn.setEnabled(true);
     }
 }
