@@ -2,13 +2,15 @@ package com.khush.chatgpt3;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
+import com.khush.chatgpt3.databinding.ActivityMainBinding;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import java.io.BufferedReader;
@@ -19,17 +21,21 @@ import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 public class MainActivity extends AppCompatActivity {
     RecyclerViewAdapter adapter;
+    ArrayList<MyData> database;
+    private ActivityMainBinding binding;
+    private String newMessage = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        View view = binding.getRoot();
+        setContentView(view);
 
         try {
             ProviderInstaller.installIfNeeded(getApplicationContext());
@@ -41,19 +47,36 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        //doRequest();
 
-        ArrayList<MyData> animalNames = new ArrayList<>();
+        database = new ArrayList<>();
         MyData line1 = new MyData();
         line1.type = 1;
         line1.message = "Hi. How can I assist you today?";
-        animalNames.add(line1);
+        database.add(line1);
 
 
         RecyclerView recyclerView = findViewById(R.id.chatField);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new RecyclerViewAdapter(this, animalNames);
+        adapter = new RecyclerViewAdapter(this, database);
         recyclerView.setAdapter(adapter);
+        binding.sendBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = binding.messageField.getText().toString();
+                if (text.length() > 0) {
+                    MyData line2 = new MyData();
+                    line2.type = 2;
+                    line2.message = text;
+                    database.add(line2);
+
+                    adapter.notifyItemInserted(database.size());
+                    newMessage = text;
+                    doRequest();
+                } else {
+                    Toast.makeText(getApplicationContext(), "The message field is empty!", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     public void doRequest() {
@@ -72,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray jsonArray = new JSONArray();
                     JSONObject message = new JSONObject();
                     message.put("role", "user");
-                    message.put("content", "What ia your name?");
+                    message.put("content", newMessage);
                     jsonArray.put(message);
 
                     JSONObject jsonParam = new JSONObject();
@@ -106,16 +129,24 @@ public class MainActivity extends AppCompatActivity {
                         JSONArray choices = json.getJSONArray("choices");
                         JSONObject text = (JSONObject) choices.getJSONObject(0).get("message");
                         String answer = text.getString("content");
-                        setAnswer(answer);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                setAnswer(answer);
+                            }
+                        });
+
+
 
                     } catch (Throwable t) {
-                        Log.e("MyTag", "Could not parse malformed JSON");
-                        setAnswer(t.getMessage());
+                        Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
+                        //setAnswer(t.getMessage());
                     }
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    setAnswer(e.getMessage());
+                    Log.i("MyTag", e.toString());
+                    //setAnswer(e.getMessage());
                 }
             }
         });
@@ -124,5 +155,11 @@ public class MainActivity extends AppCompatActivity {
 
     public void setAnswer(String text) {
         Log.e("MyTag", text);
+
+        MyData line3 = new MyData();
+        line3.type = 1;
+        line3.message = text;
+        database.add(line3);
+        adapter.notifyItemInserted(database.size());
     }
 }
