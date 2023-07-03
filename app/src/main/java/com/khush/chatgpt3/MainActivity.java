@@ -1,12 +1,18 @@
 package com.khush.chatgpt3;
 
+import android.app.UiModeManager;
+import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.annotation.ColorInt;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -50,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+        binding.loadingAnim.setVisibility(View.GONE);
+
         database = new ArrayList<>();
         MyData line = new MyData();
         line.type = 1;
@@ -89,6 +97,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void doRequest() {
         binding.sendBtn.setEnabled(false);
+        binding.loadingAnim.setVisibility(View.VISIBLE);
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -96,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
                     URL url = new URL("https://api.openai.com/v1/chat/completions");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Authorization", "Bearer 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");
+                    conn.setRequestProperty("Authorization", "Bearer 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");
                     conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
                     conn.setRequestProperty("Accept", "application/json");
                     conn.setDoOutput(true);
@@ -119,42 +128,38 @@ public class MainActivity extends AppCompatActivity {
 
                     os.flush();
                     os.close();
+                    int responseCode = conn.getResponseCode();
+                    //Log.i("MyTag", "Error code: "+ responseCode);
+                    if(responseCode==200){
+                        BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                        StringBuilder sb = new StringBuilder();
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                            sb.append(line).append("\n");
+                        }
+                        br.close();
+                        conn.disconnect();
+                        String response = sb.toString();
+                        //Log.i("MyTag", response);
 
-                    //Log.i("MyTag", String.valueOf(conn.getResponseCode()));
-
-                    BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-                    StringBuilder sb = new StringBuilder();
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        sb.append(line).append("\n");
+                        try {
+                            JSONObject json = new JSONObject(response);
+                            JSONArray choices = json.getJSONArray("choices");
+                            JSONObject text = (JSONObject) choices.getJSONObject(0).get("message");
+                            String answer = text.getString("content");
+                            setAnswer(answer);
+                        } catch (Throwable t) {
+                            Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
+                            setAnswer("There was an error, I can't answer now!");
+                        }
                     }
-                    br.close();
-                    conn.disconnect();
-                    String response = sb.toString();
-                    //Log.i("MyTag", response);
-
-                    try {
-                        JSONObject json = new JSONObject(response);
-                        JSONArray choices = json.getJSONArray("choices");
-                        JSONObject text = (JSONObject) choices.getJSONObject(0).get("message");
-                        String answer = text.getString("content");
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                setAnswer(answer);
-                            }
-                        });
-                    } catch (Throwable t) {
-                        Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
-                        setAnswer("There was an error, I can't answer now");
-                        binding.sendBtn.setEnabled(true);
+                    else{
+                        setAnswer("There was an error, I can't answer now!");
                     }
-
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Log.i("MyTag", e.toString());
-                    setAnswer("There was an error, I can't answer now");
-                    binding.sendBtn.setEnabled(true);
+                    //Log.i("MyTag", e.toString());
+                    setAnswer("There was an error, I can't answer now!");
                 }
             }
         });
@@ -164,13 +169,20 @@ public class MainActivity extends AppCompatActivity {
     public void setAnswer(String text) {
         Log.e("MyTag", text);
 
+
         MyData line = new MyData();
         line.type = 1;
         line.message = text;
         database.add(line);
-        //adapter.notifyItemInserted(database.size());
         recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount()-1);
-        adapter.notifyDataSetChanged();
-        binding.sendBtn.setEnabled(true);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                adapter.notifyDataSetChanged();
+                binding.sendBtn.setEnabled(true);
+                binding.loadingAnim.setVisibility(View.GONE);
+                binding.sendBtn.setEnabled(true);
+            }
+        });
     }
 }
