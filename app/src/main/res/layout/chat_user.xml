@@ -43,6 +43,7 @@
         android:text="TextView"
         android:textColor="@color/white"
         android:textSize="17sp"
+        android:textIsSelectable="true"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="parent"

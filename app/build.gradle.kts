@@ -46,4 +46,5 @@ dependencies {
     implementation("com.google.android.gms:play-services-auth:20.6.0")
     implementation("androidx.room:room-runtime:2.5.2")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.17")
+    implementation("com.android.volley:volley:1.2.1")
 }
