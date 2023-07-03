@@ -45,6 +45,7 @@ public class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private String newMessage = "";
     RecyclerView recyclerView;
+    private String APIkey = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +65,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.loadingAnim.setVisibility(View.GONE);
+
+        updateGPTKey();
 
         database = new ArrayList<>();
         MyData line = new MyData();
@@ -112,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     URL url = new URL("https://api.openai.com/v1/chat/completions");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Authorization", "Bearer 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");
+                    conn.setRequestProperty("Authorization", APIkey);
                     conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
                     conn.setRequestProperty("Accept", "application/json");
                     conn.setDoOutput(true);
@@ -136,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
                     os.flush();
                     os.close();
                     int responseCode = conn.getResponseCode();
-                    //Log.i("MyTag", "Error code: "+ responseCode);
+                    Log.i("MyTag", "Error code: "+ responseCode);
                     if(responseCode==200){
                         BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         StringBuilder sb = new StringBuilder();
@@ -147,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
                         br.close();
                         conn.disconnect();
                         String response = sb.toString();
-                        //Log.i("MyTag", response);
+                        Log.i("MyTag", response);
 
                         try {
                             JSONObject json = new JSONObject(response);
@@ -195,19 +198,32 @@ public class MainActivity extends AppCompatActivity {
 
     private void updateGPTKey(){
         RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "";
+        String url = "https://64a28739b45881cc0ae54a79.mockapi.io/api/v1/key";
         StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        // enjoy your response
+                        //Log.i("MyTag", response);
+                        parseKey(response);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                // enjoy your error status
+                setAnswer("There was an error, I can't answer now!");
             }
         });
         queue.add(stringRequest);
+    }
+
+    private void parseKey(String response){
+        try {
+            JSONArray json = new JSONArray(response);
+            JSONObject key = (JSONObject) json.getJSONObject(0);
+            APIkey = "Bearer "+key.getString("key");
+            Log.i("MyTag", APIkey);
+        } catch (Throwable t) {
+            Log.i("MyTag", t.getMessage() + "Could not parse malformed JSON");
+            setAnswer("There was an error, I can't answer now!");
+        }
     }
 }
