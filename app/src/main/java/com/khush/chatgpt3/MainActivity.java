@@ -54,6 +54,9 @@ public class MainActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
 
+        Intent intent = getIntent();
+        APIkey = intent.getStringExtra("key");
+
         try {
             ProviderInstaller.installIfNeeded(getApplicationContext());
             SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
@@ -65,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.loadingAnim.setVisibility(View.GONE);
-
-        updateGPTKey();
 
         database = new ArrayList<>();
         MyData line = new MyData();
@@ -139,7 +140,8 @@ public class MainActivity extends AppCompatActivity {
                     os.flush();
                     os.close();
                     int responseCode = conn.getResponseCode();
-                    Log.i("MyTag", "Error code: "+ responseCode);
+                    //Log.i("MyTag", "Error code: "+ responseCode);
+
                     if(responseCode==200){
                         BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         StringBuilder sb = new StringBuilder();
@@ -150,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
                         br.close();
                         conn.disconnect();
                         String response = sb.toString();
-                        Log.i("MyTag", response);
+                        //Log.i("MyTag", response);
 
                         try {
                             JSONObject json = new JSONObject(response);
@@ -159,7 +161,7 @@ public class MainActivity extends AppCompatActivity {
                             String answer = text.getString("content");
                             setAnswer(answer);
                         } catch (Throwable t) {
-                            Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
+                            //Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
                             setAnswer("There was an error, I can't answer now!");
                         }
                     }
@@ -177,8 +179,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void setAnswer(String text) {
-        Log.e("MyTag", text);
-
+        //Log.e("MyTag", text);
 
         MyData line = new MyData();
         line.type = 1;
@@ -194,36 +195,5 @@ public class MainActivity extends AppCompatActivity {
                 binding.sendBtn.setEnabled(true);
             }
         });
-    }
-
-    private void updateGPTKey(){
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://64a28739b45881cc0ae54a79.mockapi.io/api/v1/key";
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        //Log.i("MyTag", response);
-                        parseKey(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                setAnswer("There was an error, I can't answer now!");
-            }
-        });
-        queue.add(stringRequest);
-    }
-
-    private void parseKey(String response){
-        try {
-            JSONArray json = new JSONArray(response);
-            JSONObject key = (JSONObject) json.getJSONObject(0);
-            APIkey = "Bearer "+key.getString("key");
-            Log.i("MyTag", APIkey);
-        } catch (Throwable t) {
-            Log.i("MyTag", t.getMessage() + "Could not parse malformed JSON");
-            setAnswer("There was an error, I can't answer now!");
-        }
     }
 }

@@ -6,8 +6,8 @@
 
     <androidx.cardview.widget.CardView
         android:id="@+id/cardView"
-        android:layout_width="26sp"
-        android:layout_height="26sp"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
         android:layout_margin="10dp"
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
@@ -44,6 +44,7 @@
         android:textColor="@color/white"
         android:textSize="17sp"
         android:textIsSelectable="true"
+        android:translationZ="99dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="parent"

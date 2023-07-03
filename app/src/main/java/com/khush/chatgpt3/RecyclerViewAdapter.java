@@ -1,6 +1,7 @@
 package com.khush.chatgpt3;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -78,34 +79,39 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     }
 
     // stores and recycles views as they are scrolled off screen
-    public class ViewHolder1 extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder1 extends RecyclerView.ViewHolder {//implements View.OnClickListener {
         TextView chatText;
 
         ViewHolder1(View itemView) {
             super(itemView);
             chatText = itemView.findViewById(R.id.chatText);
-            itemView.setOnClickListener(this);
+            //itemView.setOnClickListener(this);
         }
 
-        @Override
-        public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
-        }
+//        @Override
+//        public void onClick(View view) {
+//            if (mClickListener != null) //mClickListener.onItemClick(view, getAdapterPosition());
+//            {
+//                chatText.setTextIsSelectable(true);
+//            }
+//        }
     }
 
-    public class ViewHolder2 extends RecyclerView.ViewHolder implements View.OnClickListener {
+    public class ViewHolder2 extends RecyclerView.ViewHolder {//} implements View.OnClickListener {
         TextView chatText;
 
         ViewHolder2(View itemView) {
             super(itemView);
             chatText = itemView.findViewById(R.id.chatText);
-            itemView.setOnClickListener(this);
+            //itemView.setOnClickListener(this);
         }
 
-        @Override
-        public void onClick(View view) {
-            if (mClickListener != null) mClickListener.onItemClick(view, getAdapterPosition());
-        }
+//        @Override
+//        public void onClick(View view) {
+//            if (mClickListener != null) { //mClickListener.onItemClick(view, getAdapterPosition());
+//                chatText.setTextIsSelectable(true);
+//            }
+//        }
     }
 
     // convenience method for getting data at click position
