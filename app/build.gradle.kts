@@ -47,4 +47,5 @@ dependencies {
     implementation("androidx.room:room-runtime:2.5.2")
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.17")
     implementation("com.android.volley:volley:1.2.1")
+    implementation("org.jsoup:jsoup:1.14.1")
 }

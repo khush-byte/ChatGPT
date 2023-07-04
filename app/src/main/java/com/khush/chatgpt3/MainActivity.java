@@ -1,27 +1,12 @@
 package com.khush.chatgpt3;
 
-import android.app.UiModeManager;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
-
-import androidx.annotation.ColorInt;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
@@ -90,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
                         line2.message = text;
                         database.add(line2);
 
-                        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount()-1);
+                        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount() - 1);
                         adapter.notifyDataSetChanged();
 
                         newMessage = text;
@@ -98,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         Toast.makeText(getApplicationContext(), "The message field is empty!", Toast.LENGTH_SHORT).show();
                     }
-                }else{
+                } else {
                     Toast.makeText(getApplicationContext(), "You don't have an internet connection!", Toast.LENGTH_SHORT).show();
                 }
                 binding.messageField.getText().clear();
@@ -142,7 +127,7 @@ public class MainActivity extends AppCompatActivity {
                     int responseCode = conn.getResponseCode();
                     //Log.i("MyTag", "Error code: "+ responseCode);
 
-                    if(responseCode==200){
+                    if (responseCode == 200) {
                         BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                         StringBuilder sb = new StringBuilder();
                         String line;
@@ -164,8 +149,7 @@ public class MainActivity extends AppCompatActivity {
                             //Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
                             setAnswer("There was an error, I can't answer now!");
                         }
-                    }
-                    else{
+                    } else {
                         setAnswer("There was an error, I can't answer now!");
                     }
                 } catch (Exception e) {
@@ -185,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
         line.type = 1;
         line.message = text;
         database.add(line);
-        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount()-1);
+        recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount() - 1);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {

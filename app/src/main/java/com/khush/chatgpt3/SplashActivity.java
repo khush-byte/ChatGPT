@@ -3,6 +3,7 @@ package com.khush.chatgpt3;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityOptionsCompat;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -12,6 +13,7 @@ import android.widget.TextView;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -28,16 +30,21 @@ import com.google.android.gms.security.ProviderInstaller;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Objects;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
+@SuppressLint("CustomSplashScreen")
 public class SplashActivity extends AppCompatActivity {
 
     @Override
@@ -58,7 +65,8 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         if (NetworkManager.isNetworkAvailable(getApplicationContext())) {
-            updateGPTKey();
+            //updateGPTKey();
+            parseWebPage();
         }
         else
         {
@@ -116,5 +124,38 @@ public class SplashActivity extends AppCompatActivity {
         } catch (Throwable t) {
             Log.i("MyTag", Objects.requireNonNull(t.getMessage()));
         }
+    }
+
+    private void parseWebPage(){
+        String url = "https://talkai.info/chat/";
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try  {
+                    Document doc = Jsoup.connect(url).get();
+                    Element section = doc.selectFirst("section");
+                    assert section != null;
+                    String[] lines = section.toString().split("\n");
+                    String[] objects = lines[0].split(" ");
+                    String[] keyLine = objects[objects.length-1].split("\"");
+                    String APIkey = "Bearer " + keyLine[1];
+
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                    intent.putExtra("key", APIkey);
+                    Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
+                            getApplicationContext(),
+                            android.R.anim.fade_in, android.R.anim.fade_out
+                    ).toBundle();
+                    startActivity(intent, bundle);
+                    finish();
+
+                    //Log.d("MyTag", APIkey);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    //Log.i("MyTag", Objects.requireNonNull(e.getMessage()));
+                }
+            }
+        });
+        thread.start();
     }
 }
