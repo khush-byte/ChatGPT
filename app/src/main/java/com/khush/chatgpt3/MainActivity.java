@@ -1,6 +1,7 @@
 package com.khush.chatgpt3;
 
 import android.content.Intent;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
@@ -32,6 +33,8 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     private String APIkey = "";
 
+    MediaPlayer mSound;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -53,12 +56,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.loadingAnim.setVisibility(View.GONE);
+        mSound = MediaPlayer.create(this, R.raw.chin2);
 
         database = new ArrayList<>();
         MyData line = new MyData();
         line.type = 1;
         line.message = "Hi. How can I assist you today?";
         database.add(line);
+        //mSound.start();
 
         recyclerView = findViewById(R.id.chatField);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
@@ -164,6 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void setAnswer(String text) {
         //Log.e("MyTag", text);
+        //mSound.start();
 
         MyData line = new MyData();
         line.type = 1;
