@@ -5,10 +5,13 @@ import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+import android.util.Log;
 import android.view.View;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -34,7 +37,7 @@ import javax.net.ssl.SSLEngine;
 public class MainActivity extends AppCompatActivity {
     RecyclerViewAdapter adapter;
     ArrayList<MyData> database;
-    private ActivityMainBinding binding;
+    ActivityMainBinding binding;
     private String newMessage = "";
     RecyclerView recyclerView;
     private String APIkey = "";
@@ -67,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding.loadingAnim.setVisibility(View.GONE);
         binding.menuField.setVisibility(View.GONE);
+        binding.cancelTalk.setVisibility(View.GONE);
 
         mSound = MediaPlayer.create(this, R.raw.chin3);
 
@@ -77,17 +81,51 @@ public class MainActivity extends AppCompatActivity {
             binding.speechModeSwitch.setChecked(true);
         }
 
+//        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+//            @Override
+//            public void onInit(int i) {
+//                // if No error is found then only it will run
+//                if(i!=TextToSpeech.ERROR){
+//                    // To Choose language of speech
+//                    textToSpeech.setLanguage(Locale.US);
+//                    textToSpeech.setSpeechRate(0.9f);
+//                }
+//            }
+//        });
+
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
-            public void onInit(int i) {
-                // if No error is found then only it will run
-                if(i!=TextToSpeech.ERROR){
-                    // To Choose language of speech
+            public void onInit(int status) {
+                if (status==TextToSpeech.SUCCESS){
                     textToSpeech.setLanguage(Locale.US);
+                    textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
+                        @Override
+                        public void onStart(String utteranceId) {
+                            //Log.i("MyTag","On Start");
+                        }
+
+                        @Override
+                        public void onDone(String utteranceId) {
+                            //Log.i("MyTag","On Done");
+                            binding.cancelTalk.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onError(String utteranceId) {
+                            //Log.i("MyTag","On Error");
+                            binding.cancelTalk.setVisibility(View.GONE);
+                        }
+                    });
+
+                    textToSpeech.setSpeechRate(0.9f);
+
+                }else {
+                    //Log.i("MyTag","Initialization Failed");
+                    binding.cancelTalk.setVisibility(View.GONE);
                 }
             }
         });
-        textToSpeech.setSpeechRate(0.9f);
+
 
         database = new ArrayList<>();
         MyData line = new MyData();
@@ -100,6 +138,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecyclerViewAdapter(this, database);
         adapter.textToSpeech = textToSpeech;
+        adapter.binding = binding;
         recyclerView.setAdapter(adapter);
         binding.sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -151,6 +190,16 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 prefEditor.putBoolean("speechMode", speechMode).commit();
+            }
+        });
+
+        binding.cancelTalk.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(textToSpeech.isSpeaking()) {
+                    textToSpeech.stop();
+                }
+                binding.cancelTalk.setVisibility(View.GONE);
             }
         });
     }
@@ -238,6 +287,7 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 adapter.notifyDataSetChanged();
                 adapter.textToSpeech = textToSpeech;
+                adapter.binding = binding;
                 binding.sendBtn.setEnabled(true);
                 binding.loadingAnim.setVisibility(View.GONE);
                 binding.sendBtn.setEnabled(true);
@@ -246,12 +296,11 @@ public class MainActivity extends AppCompatActivity {
 
         if(speechMode) {
             mSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+                    textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null,TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED);
+                    binding.cancelTalk.setVisibility(View.VISIBLE);
                 }
-
             });
             mSound.start();
         }

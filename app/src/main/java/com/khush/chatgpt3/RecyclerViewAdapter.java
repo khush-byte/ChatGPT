@@ -17,6 +17,8 @@ import android.widget.TextView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.khush.chatgpt3.databinding.ActivityMainBinding;
+
 import java.util.List;
 import java.util.Locale;
 
@@ -26,6 +28,7 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private LayoutInflater mInflater;
     private ItemClickListener mClickListener;
     TextToSpeech textToSpeech;
+    ActivityMainBinding binding;
 
     // data is passed into the constructor
     RecyclerViewAdapter(Context context, List<MyData> data) {
@@ -140,8 +143,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     private void textToSpeak(String text) {
         if(textToSpeech.isSpeaking()){
             textToSpeech.stop();
+            binding.cancelTalk.setVisibility(View.GONE);
         }else{
-            textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null, null);
+            textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null,TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED);
+            binding.cancelTalk.setVisibility(View.VISIBLE);
         }
     }
 }
