@@ -65,7 +65,6 @@ public class SplashActivity extends AppCompatActivity {
         }
 
         if (NetworkManager.isNetworkAvailable(getApplicationContext())) {
-            //updateGPTKey();
             parseWebPage();
         }
         else
@@ -79,7 +78,7 @@ public class SplashActivity extends AppCompatActivity {
                         handler.postDelayed(this, 1000);
                     } else {
                         text.setVisibility(View.GONE);
-                        updateGPTKey();
+                        parseWebPage();
                     }
                 }
             };
@@ -87,44 +86,44 @@ public class SplashActivity extends AppCompatActivity {
         }
     }
 
-    private void updateGPTKey(){
-        RequestQueue queue = Volley.newRequestQueue(this);
-        String url = "https://64a28739b45881cc0ae54a79.mockapi.io/api/v1/key";
-        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
-                new Response.Listener<String>() {
-                    @Override
-                    public void onResponse(String response) {
-                        //Log.i("MyTag", response);
-                        parseKey(response);
-                    }
-                }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                Log.i("MyTag", String.valueOf(error));
-            }
-        });
-        queue.add(stringRequest);
-    }
-
-    private void parseKey(String response){
-        try {
-            JSONArray json = new JSONArray(response);
-            JSONObject key = (JSONObject) json.getJSONObject(0);
-            String APIkey = "Bearer "+key.getString("key");
-            //Log.i("MyTag", APIkey);
-
-            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-            intent.putExtra("key", APIkey);
-            Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
-                    getApplicationContext(),
-                    android.R.anim.fade_in, android.R.anim.fade_out
-            ).toBundle();
-            startActivity(intent, bundle);
-            finish();
-        } catch (Throwable t) {
-            Log.i("MyTag", Objects.requireNonNull(t.getMessage()));
-        }
-    }
+//    private void updateGPTKey(){
+//        RequestQueue queue = Volley.newRequestQueue(this);
+//        String url = "https://64a28739b45881cc0ae54a79.mockapi.io/api/v1/key";
+//        StringRequest stringRequest = new StringRequest(Request.Method.GET, url,
+//                new Response.Listener<String>() {
+//                    @Override
+//                    public void onResponse(String response) {
+//                        //Log.i("MyTag", response);
+//                        parseKey(response);
+//                    }
+//                }, new Response.ErrorListener() {
+//            @Override
+//            public void onErrorResponse(VolleyError error) {
+//                Log.i("MyTag", String.valueOf(error));
+//            }
+//        });
+//        queue.add(stringRequest);
+//    }
+//
+//    private void parseKey(String response){
+//        try {
+//            JSONArray json = new JSONArray(response);
+//            JSONObject key = (JSONObject) json.getJSONObject(0);
+//            String APIkey = "Bearer "+key.getString("key");
+//            //Log.i("MyTag", APIkey);
+//
+//            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+//            intent.putExtra("key", APIkey);
+//            Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
+//                    getApplicationContext(),
+//                    android.R.anim.fade_in, android.R.anim.fade_out
+//            ).toBundle();
+//            startActivity(intent, bundle);
+//            finish();
+//        } catch (Throwable t) {
+//            Log.i("MyTag", Objects.requireNonNull(t.getMessage()));
+//        }
+//    }
 
     private void parseWebPage(){
         String url = "https://talkai.info/chat/";

@@ -47,6 +47,19 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
     @Override
     public void onBindViewHolder(final RecyclerView.ViewHolder holder, final int position) {
         String animal = mData.get(position).message;
+
+//        textToSpeech = new TextToSpeech(mInflater.getContext(), new TextToSpeech.OnInitListener() {
+//            @Override
+//            public void onInit(int i) {
+//                // if No error is found then only it will run
+//                if(i!=TextToSpeech.ERROR){
+//                    // To Choose language of speech
+//                    textToSpeech.setLanguage(Locale.US);
+//                }
+//            }
+//        });
+//        textToSpeech.setSpeechRate(0.9f);
+
         switch (holder.getItemViewType()) {
             case 1:
                 ViewHolder1 viewHolder1 = (ViewHolder1)holder;
@@ -58,18 +71,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
                 viewHolder2.chatText.setText(animal);
                 break;
         }
-
-        textToSpeech = new TextToSpeech(mInflater.getContext(), new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int i) {
-                // if No error is found then only it will run
-                if(i!=TextToSpeech.ERROR){
-                    // To Choose language of speech
-                    textToSpeech.setLanguage(Locale.US);
-                }
-            }
-        });
-        textToSpeech.setSpeechRate(0.8f);
     }
 
     @Override

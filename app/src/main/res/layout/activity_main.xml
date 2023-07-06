@@ -7,6 +7,63 @@
     android:background="#1C1C1C"
     tools:context=".MainActivity">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/menuField"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/black"
+        android:translationZ="9dp"
+        app:layout_constraintBottom_toBottomOf="@+id/chatField"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="1dp"
+            android:text="AI speech mode"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@+id/speechModeSwitch"
+            app:layout_constraintEnd_toStartOf="@+id/speechModeSwitch"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintHorizontal_chainStyle="packed"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/speechModeSwitch"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <com.google.android.material.switchmaterial.SwitchMaterial
+            android:id="@+id/speechModeSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="5dp"
+            android:colorForeground="@color/white"
+            android:paddingStart="12dp"
+            android:paddingRight="12dp"
+            android:textColor="@color/white"
+            android:theme="@style/SCBSwitch"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/textView"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="0.5" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toStartOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chatField"
         android:layout_width="match_parent"
@@ -59,16 +116,34 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent">
 
+            <ImageButton
+                android:id="@+id/menuBtn"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="#00FFFFFF"
+                android:contentDescription="menu"
+                android:paddingLeft="2dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/baseline_more_vert"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@+id/message_field"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.5"
+                app:tint="@color/button_selector" />
+
             <Button
                 android:id="@+id/send_btn"
-                android:layout_width="90dp"
+                android:layout_width="86dp"
                 android:layout_height="59dp"
                 android:layout_marginTop="1dp"
-                android:layout_marginEnd="16dp"
+                android:layout_marginEnd="14dp"
                 android:backgroundTint="@color/gray"
                 android:elevation="4dp"
                 android:fontFamily="@font/electrolize"
+                android:paddingLeft="0dp"
                 android:paddingTop="10dp"
+                android:paddingRight="0dp"
                 android:paddingBottom="10dp"
                 android:stateListAnimator="@null"
                 android:text="send"
@@ -83,7 +158,7 @@
                 android:id="@+id/message_field"
                 android:layout_width="0dp"
                 android:layout_height="52dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="32dp"
                 android:layout_marginTop="13dp"
                 android:layout_marginEnd="10dp"
                 android:layout_marginBottom="12dp"

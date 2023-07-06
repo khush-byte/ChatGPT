@@ -1,9 +1,12 @@
 package com.khush.chatgpt3;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -19,9 +22,12 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Locale;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
@@ -34,6 +40,10 @@ public class MainActivity extends AppCompatActivity {
     private String APIkey = "";
 
     MediaPlayer mSound;
+    TextToSpeech textToSpeech;
+    Boolean speechMode = false;
+    Boolean menuMode = false;
+    SharedPreferences.Editor prefEditor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,7 +66,28 @@ public class MainActivity extends AppCompatActivity {
         }
 
         binding.loadingAnim.setVisibility(View.GONE);
-        mSound = MediaPlayer.create(this, R.raw.chin2);
+        binding.menuField.setVisibility(View.GONE);
+
+        mSound = MediaPlayer.create(this, R.raw.chin3);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
+        prefEditor = sharedPreferences.edit();
+        if(sharedPreferences.getBoolean("speechMode", false)){
+            speechMode = true;
+            binding.speechModeSwitch.setChecked(true);
+        }
+
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int i) {
+                // if No error is found then only it will run
+                if(i!=TextToSpeech.ERROR){
+                    // To Choose language of speech
+                    textToSpeech.setLanguage(Locale.US);
+                }
+            }
+        });
+        textToSpeech.setSpeechRate(0.9f);
 
         database = new ArrayList<>();
         MyData line = new MyData();
@@ -68,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.chatField);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new RecyclerViewAdapter(this, database);
+        adapter.textToSpeech = textToSpeech;
         recyclerView.setAdapter(adapter);
         binding.sendBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -94,6 +126,33 @@ public class MainActivity extends AppCompatActivity {
                 binding.messageField.getText().clear();
             }
         });
+
+        binding.menuBtn.isSelected();
+        binding.menuBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!menuMode) {
+                    binding.menuField.setVisibility(View.VISIBLE);
+                    menuMode = true;
+                }
+                else {
+                    binding.menuField.setVisibility(View.GONE);
+                    menuMode = false;
+                }
+            }
+        });
+
+        binding.speechModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(binding.speechModeSwitch.isChecked()){
+                    speechMode = true;
+                }else{
+                    speechMode = false;
+                }
+
+                prefEditor.putBoolean("speechMode", speechMode).commit();
+            }
+        });
     }
 
     public void doRequest() {
@@ -114,7 +173,7 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray jsonArray = new JSONArray();
                     JSONObject message = new JSONObject();
                     message.put("role", "user");
-                    message.put("content", newMessage);
+                    message.put("content", URLEncoder.encode(newMessage, "UTF-8"));
                     jsonArray.put(message);
 
                     JSONObject jsonParam = new JSONObject();
@@ -152,15 +211,15 @@ public class MainActivity extends AppCompatActivity {
                             setAnswer(answer);
                         } catch (Throwable t) {
                             //Log.i("MyTag", t.getMessage().toString()+ "Could not parse malformed JSON");
-                            setAnswer("There was an error, I can't answer now!");
+                            setAnswer("There was an error, I can't answer now!\nPlease restart the app");
                         }
                     } else {
-                        setAnswer("There was an error, I can't answer now!");
+                        setAnswer("There was an error, I can't answer now!\nPlease restart the app");
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     //Log.i("MyTag", e.toString());
-                    setAnswer("There was an error, I can't answer now!");
+                    setAnswer("There was an error, I can't answer now!\nPlease restart the app");
                 }
             }
         });
@@ -169,8 +228,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void setAnswer(String text) {
         //Log.e("MyTag", text);
-        //mSound.start();
-
         MyData line = new MyData();
         line.type = 1;
         line.message = text;
@@ -180,10 +237,23 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 adapter.notifyDataSetChanged();
+                adapter.textToSpeech = textToSpeech;
                 binding.sendBtn.setEnabled(true);
                 binding.loadingAnim.setVisibility(View.GONE);
                 binding.sendBtn.setEnabled(true);
             }
         });
+
+        if(speechMode) {
+            mSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+                }
+
+            });
+            mSound.start();
+        }
     }
 }
