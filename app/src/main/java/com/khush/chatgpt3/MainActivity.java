@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.inputmethodservice.KeyboardView;
 import android.media.MediaPlayer;
 import android.os.Build;
@@ -15,14 +16,21 @@ import android.speech.tts.UtteranceProgressListener;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.WindowManager;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.view.inputmethod.InputMethodSubtype;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -32,6 +40,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
+import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.khush.chatgpt3.databinding.ActivityMainBinding;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -64,6 +73,7 @@ public class MainActivity extends AppCompatActivity {
     Boolean menuMode = false;
     SharedPreferences.Editor prefEditor;
     private static final int REQUEST_CODE = 100;
+    Boolean popupState = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,8 +82,8 @@ public class MainActivity extends AppCompatActivity {
         View view = binding.getRoot();
         setContentView(view);
 
-        Intent intent = getIntent();
-        APIkey = intent.getStringExtra("key");
+        //Intent intent = getIntent();
+        //APIkey = intent.getStringExtra("key");
 
         try {
             ProviderInstaller.installIfNeeded(getApplicationContext());
@@ -88,18 +98,21 @@ public class MainActivity extends AppCompatActivity {
         binding.loadingAnim.setVisibility(View.GONE);
         binding.menuField.setVisibility(View.GONE);
         binding.cancelTalk.setVisibility(View.GONE);
-        binding.speechModeSwitch.setChecked(true);
+        //binding.speechModeSwitch.setChecked(true);
 
         mSound = MediaPlayer.create(this, R.raw.chin3);
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
         prefEditor = sharedPreferences.edit();
+
+        APIkey = sharedPreferences.getString("key", "");
+
         if(sharedPreferences.getBoolean("speechMode", true)){
             speechMode = true;
-            binding.speechModeSwitch.setChecked(true);
+            //binding.speechModeSwitch.setChecked(true);
         }else{
             speechMode = false;
-            binding.speechModeSwitch.setChecked(false);
+            //binding.speechModeSwitch.setChecked(false);
         }
 
 //        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -189,32 +202,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
         binding.menuBtn.isSelected();
-        binding.menuBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(!menuMode) {
-                    binding.menuField.setVisibility(View.VISIBLE);
-                    menuMode = true;
-                }
-                else {
-                    binding.menuField.setVisibility(View.GONE);
-                    menuMode = false;
-                }
-            }
-        });
+//        binding.menuBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(!menuMode) {
+//                    binding.menuField.setVisibility(View.VISIBLE);
+//                    menuMode = true;
+//                }
+//                else {
+//                    binding.menuField.setVisibility(View.GONE);
+//                    menuMode = false;
+//                }
+//            }
+//        });
 
-        binding.speechModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(binding.speechModeSwitch.isChecked()){
-                    speechMode = true;
-                }else{
-                    speechMode = false;
-                }
-
-                initAppSetting();
-                prefEditor.putBoolean("speechMode", speechMode).commit();
-            }
-        });
+//        binding.speechModeSwitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                if(binding.speechModeSwitch.isChecked()){
+//                    speechMode = true;
+//                }else{
+//                    speechMode = false;
+//                }
+//
+//                initAppSetting();
+//                prefEditor.putBoolean("speechMode", speechMode).commit();
+//            }
+//        });
 
         binding.cancelTalk.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -404,9 +417,89 @@ public class MainActivity extends AppCompatActivity {
 
     private void initAppSetting(){
         if(speechMode){
-            binding.sendBtn.setText("hold");
+            if(binding.messageField.getText().length()>0){
+                binding.sendBtn.setText("send");
+            }else {
+                binding.sendBtn.setText("hold");
+                binding.messageField.clearFocus();
+            }
         }else{
             binding.sendBtn.setText("send");
+        }
+    }
+
+    public void onSettingsButtonClick(View view) {
+        popupState = true;
+        closeKeyboard();
+        // inflate the layout of the popup window
+        LayoutInflater inflater = (LayoutInflater)
+                getSystemService(LAYOUT_INFLATER_SERVICE);
+        View popupView = inflater.inflate(R.layout.settings_popup, null);
+
+        // create the popup window
+        int width = LinearLayout.LayoutParams.MATCH_PARENT;
+        int height = LinearLayout.LayoutParams.MATCH_PARENT;
+        boolean focusable = true; // lets taps outside the popup also dismiss it
+        final PopupWindow popupWindow = new PopupWindow(popupView, width, height, focusable);
+
+        // show the popup window
+        // which view you pass in doesn't matter, it is only used for the window tolken
+        popupWindow.showAtLocation(view, Gravity.CENTER, 0, 0);
+
+        Button closeBtn = popupView.findViewById(R.id.popup_btn_close);
+        SwitchMaterial switchBtn = popupView.findViewById(R.id.popupSpeechModeSwitch);
+
+        closeBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                initAppSetting();
+                popupState = false;
+                popupWindow.dismiss();
+            }
+        });
+
+        if(speechMode){
+            switchBtn.setChecked(true);
+        }else{
+            switchBtn.setChecked(false);
+        }
+        switchBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if(switchBtn.isChecked()){
+                    speechMode = true;
+                    binding.messageField.getText().clear();
+                }else{
+                    speechMode = false;
+                }
+                prefEditor.putBoolean("speechMode", speechMode).commit();
+            }
+        });
+
+        // dismiss the popup window when touched
+//        popupView.setOnTouchListener(new View.OnTouchListener() {
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                popupWindow.dismiss();
+//                return true;
+//            }
+//        });
+    }
+
+    private void closeKeyboard()
+    {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if(popupState) {
+            popupState = false;
+            binding.messageField.clearFocus();
         }
     }
 }

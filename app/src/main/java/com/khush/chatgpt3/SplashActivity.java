@@ -5,6 +5,8 @@ import androidx.core.app.ActivityOptionsCompat;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -51,6 +53,7 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
+
         TextView text = (TextView)findViewById(R.id.info_text);
         text.setVisibility(View.GONE);
 
@@ -141,7 +144,11 @@ public class SplashActivity extends AppCompatActivity {
                     String APIkey = "Bearer " + keyLine[1];
 
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    intent.putExtra("key", APIkey);
+                    //intent.putExtra("key", APIkey);
+                    SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
+                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+                    prefEditor.putString("key", APIkey).apply();
+
                     Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
                             getApplicationContext(),
                             android.R.anim.fade_in, android.R.anim.fade_out
