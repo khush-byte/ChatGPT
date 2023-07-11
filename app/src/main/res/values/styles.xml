@@ -19,4 +19,9 @@
         <item name="android:colorForeground">#42221f1f
         </item>
     </style>
+
+    <style name="SplashTheme" parent="MyAppTheme">
+        <item name="android:windowDisablePreview">true</item>
+        <item name="android:windowBackground">@color/black</item>
+    </style>
 </resources>

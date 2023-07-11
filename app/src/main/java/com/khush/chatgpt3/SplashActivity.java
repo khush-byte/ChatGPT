@@ -66,6 +66,7 @@ public class SplashActivity extends AppCompatActivity {
 
         if (NetworkManager.isNetworkAvailable(getApplicationContext())) {
             parseWebPage();
+            //updateGPTKey();
         }
         else
         {

@@ -7,12 +7,14 @@ import android.os.Build;
 import android.speech.tts.TextToSpeech;
 import android.text.Spannable;
 import android.text.SpannableString;
+import android.text.style.BackgroundColorSpan;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.RecyclerView;
@@ -95,9 +97,18 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             chatText.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    chatText.setTextIsSelectable(true);
+                    //chatText.setTextIsSelectable(true);
                     //Log.d("MyTag", "Comp");
                     textToSpeak(chatText.getText().toString());
+                }
+            });
+            chatText.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    copyText(itemView.getContext(), chatText.getText().toString());
+                    //Log.d("MyTag", "Comp");
+                    Toast.makeText(itemView.getContext(), "Text copied to clipboard", Toast.LENGTH_LONG).show();
+                    return true;
                 }
             });
         }
@@ -148,5 +159,11 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerView.ViewH
             textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null,TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED);
             binding.cancelTalk.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void copyText(Context context, String text) {
+        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Text", text);
+        clipboard.setPrimaryClip(clip);
     }
 }

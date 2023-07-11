@@ -1,16 +1,31 @@
 package com.khush.chatgpt3;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.inputmethodservice.KeyboardView;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.BaseInputConnection;
+import android.view.inputmethod.InputMethodInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.view.inputmethod.InputMethodSubtype;
+import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -29,6 +44,7 @@ import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import javax.net.ssl.SSLContext;
@@ -44,9 +60,10 @@ public class MainActivity extends AppCompatActivity {
 
     MediaPlayer mSound;
     TextToSpeech textToSpeech;
-    Boolean speechMode = false;
+    Boolean speechMode = true;
     Boolean menuMode = false;
     SharedPreferences.Editor prefEditor;
+    private static final int REQUEST_CODE = 100;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,14 +88,18 @@ public class MainActivity extends AppCompatActivity {
         binding.loadingAnim.setVisibility(View.GONE);
         binding.menuField.setVisibility(View.GONE);
         binding.cancelTalk.setVisibility(View.GONE);
+        binding.speechModeSwitch.setChecked(true);
 
         mSound = MediaPlayer.create(this, R.raw.chin3);
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
         prefEditor = sharedPreferences.edit();
-        if(sharedPreferences.getBoolean("speechMode", false)){
+        if(sharedPreferences.getBoolean("speechMode", true)){
             speechMode = true;
             binding.speechModeSwitch.setChecked(true);
+        }else{
+            speechMode = false;
+            binding.speechModeSwitch.setChecked(false);
         }
 
 //        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
@@ -98,6 +119,7 @@ public class MainActivity extends AppCompatActivity {
             public void onInit(int status) {
                 if (status==TextToSpeech.SUCCESS){
                     textToSpeech.setLanguage(Locale.US);
+                    textToSpeech.setSpeechRate(0.9f);
                     textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
                         @Override
                         public void onStart(String utteranceId) {
@@ -116,8 +138,6 @@ public class MainActivity extends AppCompatActivity {
                             binding.cancelTalk.setVisibility(View.GONE);
                         }
                     });
-
-                    textToSpeech.setSpeechRate(0.9f);
 
                 }else {
                     //Log.i("MyTag","Initialization Failed");
@@ -144,6 +164,8 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 String text = binding.messageField.getText().toString();
+                binding.menuField.setVisibility(View.GONE);
+
                 if (NetworkManager.isNetworkAvailable(getApplicationContext())) {
                     if (text.length() > 0) {
                         MyData line2 = new MyData();
@@ -189,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     speechMode = false;
                 }
 
+                initAppSetting();
                 prefEditor.putBoolean("speechMode", speechMode).commit();
             }
         });
@@ -201,6 +224,34 @@ public class MainActivity extends AppCompatActivity {
                 }
                 binding.cancelTalk.setVisibility(View.GONE);
             }
+        });
+
+        binding.sendBtn.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if(speechMode) {
+                    voiceEnter();
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        });
+
+        initAppSetting();
+
+        binding.messageField.addTextChangedListener(new TextWatcher() {
+            public void afterTextChanged(Editable s) {
+                if(speechMode) {
+                    if (binding.messageField.getText().length() == 0) {
+                        binding.sendBtn.setText("hold");
+                    } else {
+                        binding.sendBtn.setText("send");
+                    }
+                }
+            }
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
         });
     }
 
@@ -303,6 +354,59 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
             mSound.start();
+        }
+    }
+
+    private void voiceEnter(){
+        printInputLanguages();
+        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        //intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Voice recognition Demo...");
+        startActivityForResult(intent, REQUEST_CODE);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK)
+        {
+            ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            binding.messageField.getText().clear();
+            //binding.messageField.setText(matches.get(0));
+            if(matches!=null) {
+                String msg = matches.get(0);
+                if (msg.length() > 0) {
+                    MyData line2 = new MyData();
+                    line2.type = 2;
+                    line2.message = msg;
+                    database.add(line2);
+
+                    recyclerView.smoothScrollToPosition(recyclerView.getAdapter().getItemCount() - 1);
+                    adapter.notifyDataSetChanged();
+                    newMessage = msg;
+                    doRequest();
+                }
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
+
+    private void printInputLanguages() {
+        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+        InputMethodSubtype ims = imm.getCurrentInputMethodSubtype();
+        String localeString = ims.getLocale();
+        Locale locale = new Locale(localeString);
+        String currentLanguage = locale.getDisplayLanguage();
+        Log.i("MyTag", "Available input method locale: " + currentLanguage);
+
+    }
+
+    private void initAppSetting(){
+        if(speechMode){
+            binding.sendBtn.setText("hold");
+        }else{
+            binding.sendBtn.setText("send");
         }
     }
 }

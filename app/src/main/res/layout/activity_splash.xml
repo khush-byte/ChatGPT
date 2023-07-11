@@ -47,17 +47,16 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintVertical_bias="0.6"
-            app:srcCompat="@drawable/chat2" />
+            app:srcCompat="@drawable/chat" />
     </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/info_text2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="60dp"
         android:fontFamily="@font/electrolize"
         android:gravity="center"
-        android:text="Loading ChatGPT Assistant . . ."
+        android:text="Loading AI Assistant . . ."
         android:textColor="@color/white"
         android:textSize="16sp"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -65,7 +64,7 @@
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/cardView"
-        app:layout_constraintVertical_bias="0.29" />
+        app:layout_constraintVertical_bias="0.40" />
 
     <TextView
         android:id="@+id/info_text"
