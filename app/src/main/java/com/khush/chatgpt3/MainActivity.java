@@ -1,40 +1,25 @@
 package com.khush.chatgpt3;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.inputmethodservice.KeyboardView;
 import android.media.MediaPlayer;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.speech.RecognizerIntent;
 import android.speech.tts.TextToSpeech;
 import android.speech.tts.UtteranceProgressListener;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.util.Log;
 import android.view.Gravity;
-import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
-import android.view.inputmethod.BaseInputConnection;
-import android.view.inputmethod.InputMethodInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.view.inputmethod.InputMethodSubtype;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
@@ -53,9 +38,7 @@ import java.net.URLEncoder;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
@@ -102,15 +85,15 @@ public class MainActivity extends AppCompatActivity {
 
         mSound = MediaPlayer.create(this, R.raw.chin3);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("MyData", MODE_PRIVATE);
         prefEditor = sharedPreferences.edit();
 
         APIkey = sharedPreferences.getString("key", "");
 
-        if(sharedPreferences.getBoolean("speechMode", true)){
+        if (sharedPreferences.getBoolean("speechMode", true)) {
             speechMode = true;
             //binding.speechModeSwitch.setChecked(true);
-        }else{
+        } else {
             speechMode = false;
             //binding.speechModeSwitch.setChecked(false);
         }
@@ -130,7 +113,7 @@ public class MainActivity extends AppCompatActivity {
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
             public void onInit(int status) {
-                if (status==TextToSpeech.SUCCESS){
+                if (status == TextToSpeech.SUCCESS) {
                     textToSpeech.setLanguage(Locale.US);
                     textToSpeech.setSpeechRate(0.9f);
                     textToSpeech.setOnUtteranceProgressListener(new UtteranceProgressListener() {
@@ -152,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
                         }
                     });
 
-                }else {
+                } else {
                     //Log.i("MyTag","Initialization Failed");
                     binding.cancelTalk.setVisibility(View.GONE);
                 }
@@ -232,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
         binding.cancelTalk.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(textToSpeech.isSpeaking()) {
+                if (textToSpeech.isSpeaking()) {
                     textToSpeech.stop();
                 }
                 binding.cancelTalk.setVisibility(View.GONE);
@@ -242,10 +225,10 @@ public class MainActivity extends AppCompatActivity {
         binding.sendBtn.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                if(speechMode) {
+                if (speechMode) {
                     voiceEnter();
                     return true;
-                }else{
+                } else {
                     return false;
                 }
             }
@@ -255,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
 
         binding.messageField.addTextChangedListener(new TextWatcher() {
             public void afterTextChanged(Editable s) {
-                if(speechMode) {
+                if (speechMode) {
                     if (binding.messageField.getText().length() == 0) {
                         binding.sendBtn.setText("hold");
                     } else {
@@ -263,8 +246,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
             }
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+            }
+
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+            }
         });
     }
 
@@ -358,11 +345,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(speechMode) {
+        if (speechMode) {
             mSound.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    textToSpeech.speak(text,TextToSpeech.QUEUE_FLUSH,null,TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED);
+                    textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, TextToSpeech.ACTION_TTS_QUEUE_PROCESSING_COMPLETED);
                     binding.cancelTalk.setVisibility(View.VISIBLE);
                 }
             });
@@ -370,24 +357,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void voiceEnter(){
-        printInputLanguages();
+    private void voiceEnter() {
         Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         //intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-US");
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "Voice recognition Demo...");
+        intent.putExtra(RecognizerIntent.EXTRA_PROMPT, "voice recognition ...");
         startActivityForResult(intent, REQUEST_CODE);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
-        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK)
-        {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_CODE && resultCode == RESULT_OK) {
             ArrayList<String> matches = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
             binding.messageField.getText().clear();
             //binding.messageField.setText(matches.get(0));
-            if(matches!=null) {
+            if (matches != null) {
                 String msg = matches.get(0);
                 if (msg.length() > 0) {
                     MyData line2 = new MyData();
@@ -405,25 +389,15 @@ public class MainActivity extends AppCompatActivity {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    private void printInputLanguages() {
-        InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-        InputMethodSubtype ims = imm.getCurrentInputMethodSubtype();
-        String localeString = ims.getLocale();
-        Locale locale = new Locale(localeString);
-        String currentLanguage = locale.getDisplayLanguage();
-        Log.i("MyTag", "Available input method locale: " + currentLanguage);
-
-    }
-
-    private void initAppSetting(){
-        if(speechMode){
-            if(binding.messageField.getText().length()>0){
+    private void initAppSetting() {
+        if (speechMode) {
+            if (binding.messageField.getText().length() > 0) {
                 binding.sendBtn.setText("send");
-            }else {
+            } else {
                 binding.sendBtn.setText("hold");
                 binding.messageField.clearFocus();
             }
-        }else{
+        } else {
             binding.sendBtn.setText("send");
         }
     }
@@ -458,17 +432,17 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        if(speechMode){
+        if (speechMode) {
             switchBtn.setChecked(true);
-        }else{
+        } else {
             switchBtn.setChecked(false);
         }
         switchBtn.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-                if(switchBtn.isChecked()){
+                if (switchBtn.isChecked()) {
                     speechMode = true;
                     binding.messageField.getText().clear();
-                }else{
+                } else {
                     speechMode = false;
                 }
                 prefEditor.putBoolean("speechMode", speechMode).commit();
@@ -485,11 +459,10 @@ public class MainActivity extends AppCompatActivity {
 //        });
     }
 
-    private void closeKeyboard()
-    {
+    private void closeKeyboard() {
         View view = this.getCurrentFocus();
         if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
     }
@@ -497,7 +470,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if(popupState) {
+        if (popupState) {
             popupState = false;
             binding.messageField.clearFocus();
         }
