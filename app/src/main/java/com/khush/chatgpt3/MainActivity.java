@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("MyData", MODE_PRIVATE);
         prefEditor = sharedPreferences.edit();
 
-        APIkey = sharedPreferences.getString("key", "");
+        APIkey = "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";
 
         if (sharedPreferences.getBoolean("speechMode", true)) {
             speechMode = true;
@@ -144,10 +144,11 @@ public class MainActivity extends AppCompatActivity {
 
 
         database = new ArrayList<>();
-        MyData line = new MyData();
-        line.type = 1;
-        line.message = "Hi. How can I assist you today?";
-        database.add(line);
+//        MyData line = new MyData();
+//        line.type = 1;
+//        line.message = "Hi. How can I assist you today?";
+//        database.add(line);
+
         //mSound.start();
 
         recyclerView = findViewById(R.id.chatField);
@@ -253,6 +254,8 @@ public class MainActivity extends AppCompatActivity {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
             }
         });
+
+        setAnswer("Hi. How can I assist you today?");
     }
 
     public void doRequest() {
@@ -265,7 +268,7 @@ public class MainActivity extends AppCompatActivity {
                     URL url = new URL("https://api.openai.com/v1/chat/completions");
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("POST");
-                    conn.setRequestProperty("Authorization", APIkey);
+                    conn.setRequestProperty("Authorization", "Bearer " + APIkey);
                     conn.setRequestProperty("Content-Type", "application/json;charset=UTF-8");
                     conn.setRequestProperty("Accept", "application/json");
                     conn.setDoOutput(true);

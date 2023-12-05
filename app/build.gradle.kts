@@ -4,14 +4,14 @@ plugins {
 
 android {
     namespace = "com.khush.chatgpt3"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.khush.chatgpt3"
         minSdk = 21
-        targetSdk = 33
-        versionCode = 4
-        versionName = "1.3"
+        targetSdk = 34
+        versionCode = 7
+        versionName = "1.7"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

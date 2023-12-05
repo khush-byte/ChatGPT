@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Handler;
 import android.util.Log;
 import android.view.View;
@@ -130,39 +131,54 @@ public class SplashActivity extends AppCompatActivity {
 //    }
 
     private void parseWebPage(){
-        String url = "https://talkai.info/chat/";
-        Thread thread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try  {
-                    Document doc = Jsoup.connect(url).get();
-                    Element section = doc.selectFirst("section");
-                    assert section != null;
-                    String[] lines = section.toString().split("\n");
-                    String[] objects = lines[0].split(" ");
-                    String[] keyLine = objects[objects.length-1].split("\"");
-                    String APIkey = "Bearer " + keyLine[1];
+//        String url = "https://talkai.info/chat/";
+//        Thread thread = new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                try  {
+//                    Document doc = Jsoup.connect(url).get();
+//                    Element section = doc.selectFirst("section");
+//                    assert section != null;
+//                    String[] lines = section.toString().split("\n");
+//                    String[] objects = lines[0].split(" ");
+//                    String[] keyLine = objects[objects.length-1].split("\"");
+//                    String APIkey = "Bearer " + keyLine[1];
+//
+//                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+//                    //intent.putExtra("key", APIkey);
+//                    SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
+//                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
+//                    prefEditor.putString("key", APIkey).apply();
+//
+//                    Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
+//                            getApplicationContext(),
+//                            android.R.anim.fade_in, android.R.anim.fade_out
+//                    ).toBundle();
+//                    startActivity(intent, bundle);
+//                    finish();
+//
+//                    //Log.d("MyTag", APIkey);
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    //Log.i("MyTag", Objects.requireNonNull(e.getMessage()));
+//                }
+//            }
+//        });
+//        thread.start();
 
-                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    //intent.putExtra("key", APIkey);
-                    SharedPreferences sharedPreferences = getSharedPreferences("MyData",MODE_PRIVATE);
-                    SharedPreferences.Editor prefEditor = sharedPreferences.edit();
-                    prefEditor.putString("key", APIkey).apply();
+        new CountDownTimer(1600, 1000) {
+            public void onTick(long millisUntilFinished) {
+            }
 
-                    Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
+            public void onFinish() {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                Bundle bundle = ActivityOptionsCompat.makeCustomAnimation(
                             getApplicationContext(),
                             android.R.anim.fade_in, android.R.anim.fade_out
                     ).toBundle();
-                    startActivity(intent, bundle);
-                    finish();
-
-                    //Log.d("MyTag", APIkey);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    //Log.i("MyTag", Objects.requireNonNull(e.getMessage()));
-                }
+                startActivity(intent, bundle);
+                finish();
             }
-        });
-        thread.start();
+        }.start();
     }
 }
